@@ -1,0 +1,28 @@
+.navbar {
+  background-color: #3b82f6;
+  padding: 1rem;
+}
+
+.navList {
+  display: flex;
+  list-style: none;
+  gap: 1.5rem;
+  margin: 0;
+  padding: 0;
+}
+
+.navItem {
+  color: white;
+  font-weight: 500;
+  transition: opacity 0.2s;
+}
+
+.navItem:hover {
+  opacity: 0.8;
+  text-decoration: underline;
+}
+
+.navItem a {
+  color: inherit;
+  text-decoration: none;
+}

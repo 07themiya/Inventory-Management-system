@@ -1,14 +1,15 @@
 import { Provider } from 'react-redux';
 import { store } from '../redux/store';
 import Navbar from '../components/Navbar';
+import './app.css'; 
 import '../styles/globals.css';
 
 function MyApp({ Component, pageProps }) {
   return (
     <Provider store={store}>
-      <div className="min-h-screen bg-gray-50">
+      <div className="app-container">
         <Navbar />
-        <main className="container mx-auto p-4">
+        <main className="main-content">
           <Component {...pageProps} />
         </main>
       </div>

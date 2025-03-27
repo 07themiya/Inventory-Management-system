@@ -1,61 +1,117 @@
 import { useSelector } from 'react-redux';
 import StatsCard from '../components/StatsCard';
 import Link from 'next/link';
+import styles from './Dashboard.module.css';
 
 export default function Dashboard() {
   const items = useSelector(state => state.inventory.items);
 
   const totalItems = items.length;
   const totalStock = items.reduce((sum, item) => sum + item.initialStock + item.purchased - item.used, 0);
-  const lowStockItems = items.filter(item => (item.initialStock + item.purchased - item.used) < 10).length;
+  const lowStockItems = items.filter(item => (item.initialStock + item.purchased - item.used) < 10);
+  const criticalStockItems = items.filter(item => (item.initialStock + item.purchased - item.used) < 5);
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-6">Inventory Dashboard</h1>
-      
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <StatsCard title="Total Items" value={totalItems} color="blue" />
-        <StatsCard title="Total Stock" value={totalStock} color="green" />
-        <StatsCard title="Low Stock Items" value={lowStockItems} color={lowStockItems > 0 ? 'red' : 'green'} />
+    <div className={styles.container}>
+      <div className={styles.header}>
+        <h1 className={styles.title}>Inventory Dashboard</h1>
+        <p className={styles.subtitle}>Overview of your inventory status</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-xl font-bold mb-4">Quick Actions</h2>
-          <div className="space-y-4">
-            <Link href="/inventory">
-              <a className="block bg-blue-600 text-white px-4 py-2 rounded text-center hover:bg-blue-700">
-                View Inventory
-              </a>
+      <div className={styles.statsGrid}>
+        <StatsCard 
+          title="Total Items" 
+          value={totalItems} 
+          icon="📦"
+          trend="up"
+          trendValue="12%"
+          color="blue"
+        />
+        <StatsCard 
+          title="Total Stock" 
+          value={totalStock} 
+          icon="📊"
+          trend="neutral"
+          color="green"
+        />
+        <StatsCard 
+          title="Low Stock" 
+          value={lowStockItems.length} 
+          icon="⚠️"
+          trend={criticalStockItems.length > 0 ? "critical" : "down"}
+          trendValue={criticalStockItems.length > 0 ? `${criticalStockItems.length} critical` : "All good"}
+          color={criticalStockItems.length > 0 ? "red" : "orange"}
+        />
+      </div>
+
+      <div className={styles.contentGrid}>
+        <div className={styles.card}>
+          <div className={styles.cardHeader}>
+            <h2 className={styles.cardTitle}>Quick Actions</h2>
+            <span className={styles.cardIcon}>⚡</span>
+          </div>
+          <div className={styles.actionsGrid}>
+            <Link href="/inventory" className={`${styles.actionButton} ${styles.blue}`}>
+              <span className={styles.actionIcon}>📋</span>
+              View Inventory
             </Link>
-            <Link href="/purchases">
-              <a className="block bg-green-600 text-white px-4 py-2 rounded text-center hover:bg-green-700">
-                Add Purchase
-              </a>
+            <Link href="/purchase" className={`${styles.actionButton} ${styles.green}`}>
+              <span className={styles.actionIcon}>🛒</span>
+              Add Purchase
             </Link>
-            <Link href="/usage">
-              <a className="block bg-purple-600 text-white px-4 py-2 rounded text-center hover:bg-purple-700">
-                Log Usage
-              </a>
+            <Link href="/usage" className={`${styles.actionButton} ${styles.purple}`}>
+              <span className={styles.actionIcon}>📝</span>
+              Log Usage
+            </Link>
+            <Link href="/reports" className={`${styles.actionButton} ${styles.orange}`}>
+              <span className={styles.actionIcon}>📊</span>
+              Generate Report
             </Link>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-xl font-bold mb-4">Low Stock Alerts</h2>
-          {lowStockItems > 0 ? (
-            <ul className="space-y-2">
-              {items
-                .filter(item => (item.initialStock + item.purchased - item.used) < 10)
-                .map(item => (
-                  <li key={item.id} className="flex justify-between items-center p-2 bg-red-50 rounded">
-                    <span>{item.name}</span>
-                    <span className="font-bold">{item.initialStock + item.purchased - item.used} left</span>
-                  </li>
-                ))}
-            </ul>
+        <div className={styles.card}>
+          <div className={styles.cardHeader}>
+            <h2 className={styles.cardTitle}>Stock Alerts</h2>
+            <span className={styles.cardIcon}>🚨</span>
+          </div>
+          {lowStockItems.length > 0 ? (
+            <div className={styles.alertContainer}>
+              {criticalStockItems.length > 0 && (
+                <>
+                  <h3 className={styles.alertSubtitle}>Critical Stock</h3>
+                  <ul className={styles.alertList}>
+                    {criticalStockItems.map(item => (
+                      <li key={item.id} className={`${styles.alertItem} ${styles.critical}`}>
+                        <span className={styles.itemName}>{item.name}</span>
+                        <span className={styles.itemStock}>
+                          {item.initialStock + item.purchased - item.used} left
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
+              <h3 className={styles.alertSubtitle}>Low Stock</h3>
+              <ul className={styles.alertList}>
+                {lowStockItems
+                  .filter(item => (item.initialStock + item.purchased - item.used) >= 5)
+                  .map(item => (
+                    <li key={item.id} className={styles.alertItem}>
+                      <span className={styles.itemName}>{item.name}</span>
+                      <span className={styles.itemStock}>
+                        {item.initialStock + item.purchased - item.used} left
+                      </span>
+                    </li>
+                  ))}
+              </ul>
+            </div>
           ) : (
-            <p className="text-green-600">No low stock items!</p>
+            <div className={styles.emptyState}>
+              <span className={styles.emptyIcon}>🎉</span>
+              <h3 className={styles.emptyTitle}>All items in good stock!</h3>
+              <p className={styles.emptyMessage}>No low stock items to display</p>
+            </div>
           )}
         </div>
       </div>

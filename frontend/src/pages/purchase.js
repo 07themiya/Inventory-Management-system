@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import PurchaseForm from '../components/PurchaseForm';
 import { useSelector } from 'react-redux';
+import styles from './purchase.module.css';
 
 export default function PurchaseLog() {
   const purchases = useSelector(state => state.inventory.purchases);
   const [searchTerm, setSearchTerm] = useState('');
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'descending' });
 
   // Filter purchases based on search term
   const filteredPurchases = purchases.filter(purchase => 
@@ -13,53 +15,139 @@ export default function PurchaseLog() {
     purchase.date.includes(searchTerm)
   );
 
+  // Sort purchases
+  const requestSort = (key) => {
+    let direction = 'descending';
+    if (sortConfig.key === key && sortConfig.direction === 'descending') {
+      direction = 'ascending';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const sortedPurchases = [...filteredPurchases].sort((a, b) => {
+    if (sortConfig.key) {
+      if (a[sortConfig.key] < b[sortConfig.key]) {
+        return sortConfig.direction === 'ascending' ? -1 : 1;
+      }
+      if (a[sortConfig.key] > b[sortConfig.key]) {
+        return sortConfig.direction === 'ascending' ? 1 : -1;
+      }
+    }
+    return 0;
+  });
+
+  // Format date for display
+  const formatDate = (dateString) => {
+    const options = { year: 'numeric', month: 'short', day: 'numeric' };
+    return new Date(dateString).toLocaleDateString(undefined, options);
+  };
+
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-6">Purchase Log</h1>
-      
+    <div className={styles.container}>
+      <header className={styles.header}>
+        <h1 className={styles.title}>Purchase History</h1>
+        <p className={styles.subtitle}>Track all inventory purchases</p>
+      </header>
+
       <PurchaseForm />
 
-      {/* Search Bar */}
-      <div className="mb-6 bg-white p-4 rounded-lg shadow-md">
-        <input
-          type="text"
-          placeholder="Search by item, category, or date..."
-          className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
+      <br />
+
+      <div className={styles.controls}>
+        <div className={styles.searchContainer}>
+          <input
+            type="text"
+            placeholder="Search purchases..."
+            className={styles.searchInput}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          <span className={styles.searchIcon}>🔍</span>
+        </div>
+        <div className={styles.stats}>
+          <span className={styles.statItem}>
+            Total Purchases: <strong>{purchases.length}</strong>
+          </span>
+        </div>
       </div>
 
-      <div className="bg-white p-6 rounded-lg shadow-md">
-        <h2 className="text-xl font-bold mb-4">Past Purchases</h2>
-        
-        {filteredPurchases.length > 0 ? (
-          <div className="overflow-x-auto">
-            <table className="min-w-full bg-white">
+      <div className={styles.tableContainer}>
+        {sortedPurchases.length > 0 ? (
+          <>
+            <table className={styles.table}>
               <thead>
-                <tr className="bg-gray-50">
-                  <th className="py-3 px-4 border font-semibold text-left">Date</th>
-                  <th className="py-3 px-4 border font-semibold text-left">Item Name</th>
-                  <th className="py-3 px-4 border font-semibold text-left">Category</th>
-                  <th className="py-3 px-4 border font-semibold text-left">Quantity</th>
+                <tr>
+                  <th 
+                    onClick={() => requestSort('date')} 
+                    className={styles.sortableHeader}
+                  >
+                    Date {sortConfig.key === 'date' && (sortConfig.direction === 'ascending' ? '↑' : '↓')}
+                  </th>
+                  <th 
+                    onClick={() => requestSort('itemName')} 
+                    className={styles.sortableHeader}
+                  >
+                    Item {sortConfig.key === 'itemName' && (sortConfig.direction === 'ascending' ? '↑' : '↓')}
+                  </th>
+                  <th 
+                    onClick={() => requestSort('category')} 
+                    className={styles.sortableHeader}
+                  >
+                    Category {sortConfig.key === 'category' && (sortConfig.direction === 'ascending' ? '↑' : '↓')}
+                  </th>
+                  <th 
+                    onClick={() => requestSort('quantity')} 
+                    className={styles.sortableHeader}
+                  >
+                    Qty {sortConfig.key === 'quantity' && (sortConfig.direction === 'ascending' ? '↑' : '↓')}
+                  </th>
+                  <th 
+                    onClick={() => requestSort('unitPrice')} 
+                    className={styles.sortableHeader}
+                  >
+                    Unit Price {sortConfig.key === 'unitPrice' && (sortConfig.direction === 'ascending' ? '↑' : '↓')}
+                  </th>
+                  <th 
+                    onClick={() => requestSort('totalCost')} 
+                    className={styles.sortableHeader}
+                  >
+                    Total {sortConfig.key === 'totalCost' && (sortConfig.direction === 'ascending' ? '↑' : '↓')}
+                  </th>
                 </tr>
               </thead>
               <tbody>
-                {filteredPurchases.map(purchase => (
-                  <tr key={purchase.id} className="hover:bg-gray-50">
-                    <td className="py-2 px-4 border">{purchase.date}</td>
-                    <td className="py-2 px-4 border">{purchase.itemName}</td>
-                    <td className="py-2 px-4 border">{purchase.category}</td>
-                    <td className="py-2 px-4 border">{purchase.quantity}</td>
+                {sortedPurchases.map(purchase => (
+                  <tr key={purchase.id} className={styles.tableRow}>
+                    <td className={styles.dateCell}>{formatDate(purchase.date)}</td>
+                    <td className={styles.itemCell}>{purchase.itemName}</td>
+                    <td>
+                      <span className={styles.categoryBadge}>{purchase.category}</span>
+                    </td>
+                    <td className={styles.quantityCell}>{purchase.quantity}</td>
+                    <td className={styles.priceCell}>
+                      {purchase.unitPrice ? `$${parseFloat(purchase.unitPrice).toFixed(2)}` : 'N/A'}
+                    </td>
+                    <td className={styles.priceCell}>
+                      {purchase.totalCost ? `$${parseFloat(purchase.totalCost).toFixed(2)}` : 'N/A'}
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          </div>
+            <div className={styles.tableFooter}>
+              Showing {sortedPurchases.length} of {purchases.length} records
+            </div>
+          </>
         ) : (
-          <p className="text-gray-500">
-            {searchTerm ? 'No matching purchases found.' : 'No purchase records found.'}
-          </p>
+          <div className={styles.emptyState}>
+            <div className={styles.emptyIllustration}>📦</div>
+            <h3 className={styles.emptyTitle}>
+              {searchTerm ? 'No matching purchases found' : 'No purchase records yet'}
+            </h3>
+            <p className={styles.emptyText}>
+              {searchTerm ? 'Try a different search term' : 'Add your first purchase using the form above'}
+            </p>
+          </div>
         )}
       </div>
     </div>
