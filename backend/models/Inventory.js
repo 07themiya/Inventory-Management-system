@@ -7,6 +7,9 @@ const inventorySchema = new mongoose.Schema({
   purchased: Number,
   used: Number,
   currentStock: Number,
-}, { timestamps: true });
+}, { 
+  timestamps: true,
+  collection: 'inventories' // Explicitly set collection name
+});
 
 module.exports = mongoose.model("Inventory", inventorySchema);

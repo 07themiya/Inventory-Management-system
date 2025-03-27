@@ -1,13 +1,38 @@
-import { ADD_ITEM, UPDATE_ITEM, DELETE_ITEM, ADD_PURCHASE, ADD_USAGE } from './actions';
+import { 
+  ADD_ITEM, 
+  UPDATE_ITEM, 
+  DELETE_ITEM, 
+  FETCH_ITEMS,
+  FETCH_PURCHASE_LOGS, 
+  HANDLE_API_ERROR,
+  ADD_PURCHASE_LOG 
+} from './actions';
 
-const initialState = {
-  items: [],
-  purchases: [],
-  usage: []
+export const UPDATE_PURCHASE = 'UPDATE_PURCHASE';
+export const REMOVE_PURCHASE = 'REMOVE_PURCHASE';
+
+// Initial states
+const initialInventoryState = {
+  items: []
 };
 
-export default function inventoryReducer(state = initialState, action) {
+const initialState = {
+  purchaseLogs: [],
+  error: null,
+};
+
+const initialPurchaseState = {
+  purchaseLogs: []  // Keep the key consistent
+};
+
+// Inventory reducer
+export function inventoryReducer(state = initialInventoryState, action) {
   switch (action.type) {
+    case FETCH_ITEMS:
+      return {
+        ...state,
+        items: action.payload
+      };
     case ADD_ITEM:
       return {
         ...state,
@@ -17,25 +42,60 @@ export default function inventoryReducer(state = initialState, action) {
       return {
         ...state,
         items: state.items.map(item => 
-          item.id === action.payload.id ? { ...item, ...action.payload.updates } : item
+          item._id === action.payload.id 
+            ? { ...item, ...action.payload.updates } 
+            : item
         )
       };
     case DELETE_ITEM:
       return {
         ...state,
-        items: state.items.filter(item => item.id !== action.payload)
-      };
-    case ADD_PURCHASE:
-      return {
-        ...state,
-        purchases: [...state.purchases, action.payload]
-      };
-    case ADD_USAGE:
-      return {
-        ...state,
-        usage: [...state.usage, action.payload]
+        items: state.items.filter(item => item._id !== action.payload)
       };
     default:
       return state;
   }
 }
+
+// Purchase reducer
+export function purchaseLogReducer(state = initialPurchaseState, action) {
+  switch (action.type) {
+
+    case FETCH_PURCHASE_LOGS:
+      return {
+        ...state,
+        purchaseLogs: action.payload, // Correct key is purchaseLogs
+        error: null,
+      };
+
+    case ADD_PURCHASE_LOG:
+      return {
+        ...state,
+        purchaseLogs: [action.payload, ...state.purchaseLogs] // Use purchaseLogs, not purchases
+      };
+
+    case UPDATE_PURCHASE:
+      return {
+        ...state,
+        purchaseLogs: state.purchaseLogs.map(purchase => 
+          purchase.id === action.payload.tempId ? action.payload.purchase : purchase
+        )
+      };
+
+    case REMOVE_PURCHASE:
+      return {
+        ...state,
+        purchaseLogs: state.purchaseLogs.filter(purchase => purchase.id !== action.payload)
+      };
+
+    case HANDLE_API_ERROR:
+      return {
+        ...state,
+        error: action.payload,
+      };
+
+    default:
+      return state;
+  }
+}
+

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { addPurchase, updateItem } from '../redux/actions';
+import { addPurchaseLog, fetchPurchaseLogs } from '../redux/actions';
 import { format } from 'date-fns';
 import styles from './PurchaseForm.module.css';
 
@@ -37,46 +37,38 @@ export default function PurchaseForm() {
     setErrors({ ...errors, [e.target.name]: '' });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!validateForm()) return;
-    setIsSubmitting(true);
+// In PurchaseForm.js
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  if (!validateForm()) return;
+  setIsSubmitting(true);
 
-    try {
-      const selectedItem = items.find(item => item.name === formData.itemName);
+  try {
+    // First add the purchase
+    await dispatch(addPurchaseLog({
+      ...formData,
+      quantity: Number(formData.quantity),
+      unitPrice: Number(formData.unitPrice),
+      totalCost: Number(formData.quantity) * Number(formData.unitPrice)
+    }));
 
-      if (selectedItem) {
-        dispatch(updateItem(selectedItem.id, {
-          purchased: selectedItem.purchased + parseInt(formData.quantity)
-        }));
-      }
+    // Then refresh the purchase list
+    await dispatch(fetchPurchaseLogs());
 
-      const totalCost = parseFloat(formData.quantity) * parseFloat(formData.unitPrice || 0);
-
-      dispatch(addPurchase({
-        ...formData,
-        id: Date.now(),
-        quantity: parseInt(formData.quantity),
-        unitPrice: parseFloat(formData.unitPrice || 0),
-        totalCost,
-        date: new Date(formData.date).toISOString()
-      }));
-
-      setFormData({
-        date: format(new Date(), 'yyyy-MM-dd'),
-        itemName: '',
-        category: '',
-        quantity: '',
-        unitPrice: '',
-        supplier: ''
-      });
-
-    } catch (error) {
-      console.error('Error submitting purchase:', error);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+    // Reset form
+    setFormData({
+      date: format(new Date(), 'yyyy-MM-dd'),
+      itemName: '',
+      category: '',
+      quantity: '',
+      unitPrice: ''
+    });
+  } catch (error) {
+    console.error('Error submitting purchase:', error);
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   const calculateTotal = () => {
     if (formData.quantity && formData.unitPrice) {
@@ -159,46 +151,8 @@ export default function PurchaseForm() {
             </div>
             {errors.quantity && <span className={styles.error}>{errors.quantity}</span>}
           </div>
-
-          {/* Unit Price Field */}
-          <div className={styles.formGroup}>
-            <label className={styles.label}>Unit Price</label>
-            <div className={styles.inputWithAddon}>
-              <span className={styles.addon}>$</span>
-              <input
-                type="number"
-                name="unitPrice"
-                value={formData.unitPrice}
-                onChange={handleChange}
-                className={styles.input}
-                min="0"
-                step="0.01"
-                placeholder="0.00"
-              />
-            </div>
-            {errors.unitPrice && <span className={styles.error}>{errors.unitPrice}</span>}
-          </div>
-
-          {/* Supplier Field */}
-          <div className={styles.formGroup}>
-            <label className={styles.label}>Supplier</label>
-            <input
-              type="text"
-              name="supplier"
-              value={formData.supplier}
-              onChange={handleChange}
-              className={styles.input}
-              placeholder="Optional"
-            />
-          </div>
-        </div>
-
-        <div className={styles.footer}>
-          <div className={styles.totalContainer}>
-            <div className={styles.totalLabel}>Estimated Total</div>
-            <div className={styles.totalAmount}>${calculateTotal()}</div>
-          </div>
           
+          <div>
           <button 
             type="submit" 
             className={styles.submitButton}
@@ -212,6 +166,7 @@ export default function PurchaseForm() {
               'Record Purchase'
             )}
           </button>
+          </div>
         </div>
       </form>
     </div>

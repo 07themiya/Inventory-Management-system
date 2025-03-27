@@ -1,21 +1,39 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { fetchPurchaseLogs } from '../redux/actions';
 import PurchaseForm from '../components/PurchaseForm';
-import { useSelector } from 'react-redux';
+import { createSelector } from 'reselect';
 import styles from './purchase.module.css';
 
 export default function PurchaseLog() {
-  const purchases = useSelector(state => state.inventory.purchases);
+  const dispatch = useDispatch();
+  const purchases = useSelector(state => state.inventory?.purchases || []);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'descending' });
 
-  // Filter purchases based on search term
-  const filteredPurchases = purchases.filter(purchase => 
-    purchase.itemName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    purchase.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    purchase.date.includes(searchTerm)
+  const selectPurchaseLogs = state => state.purchaseLogs.purchaseLogs;
+
+  const selectPurchaseLogsMemoized = createSelector(
+    [selectPurchaseLogs],
+    purchaseLogs => purchaseLogs
   );
 
-  // Sort purchases
+  // Load purchases on mount
+  useEffect(() => {
+    dispatch(fetchPurchaseLogs());
+  }, [dispatch]);
+
+  // Debugging
+  useEffect(() => {
+    console.log('Purchases updated:', purchases);
+  }, [purchases]);
+
+  const filteredPurchases = purchases.filter(purchase => 
+    purchase?.itemName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    purchase?.category?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    purchase?.date?.includes(searchTerm)
+  );
+
   const requestSort = (key) => {
     let direction = 'descending';
     if (sortConfig.key === key && sortConfig.direction === 'descending') {
@@ -26,20 +44,27 @@ export default function PurchaseLog() {
 
   const sortedPurchases = [...filteredPurchases].sort((a, b) => {
     if (sortConfig.key) {
-      if (a[sortConfig.key] < b[sortConfig.key]) {
+      const aValue = a[sortConfig.key] || '';
+      const bValue = b[sortConfig.key] || '';
+      
+      if (aValue < bValue) {
         return sortConfig.direction === 'ascending' ? -1 : 1;
       }
-      if (a[sortConfig.key] > b[sortConfig.key]) {
+      if (aValue > bValue) {
         return sortConfig.direction === 'ascending' ? 1 : -1;
       }
     }
     return 0;
   });
 
-  // Format date for display
   const formatDate = (dateString) => {
-    const options = { year: 'numeric', month: 'short', day: 'numeric' };
-    return new Date(dateString).toLocaleDateString(undefined, options);
+    if (!dateString) return 'N/A';
+    try {
+      const options = { year: 'numeric', month: 'short', day: 'numeric' };
+      return new Date(dateString).toLocaleDateString(undefined, options);
+    } catch {
+      return dateString;
+    }
   };
 
   return (
@@ -52,9 +77,9 @@ export default function PurchaseLog() {
       <PurchaseForm />
 
       <br />
-
       <div className={styles.controls}>
         <div className={styles.searchContainer}>
+          <span className={styles.searchIcon}>🔍</span>
           <input
             type="text"
             placeholder="Search purchases..."
@@ -65,9 +90,7 @@ export default function PurchaseLog() {
           <span className={styles.searchIcon}>🔍</span>
         </div>
         <div className={styles.stats}>
-          <span className={styles.statItem}>
-            Total Purchases: <strong>{purchases.length}</strong>
-          </span>
+          <span>Total Purchases: <strong>{purchases.length}</strong></span>
         </div>
       </div>
 
@@ -77,59 +100,31 @@ export default function PurchaseLog() {
             <table className={styles.table}>
               <thead>
                 <tr>
-                  <th 
-                    onClick={() => requestSort('date')} 
-                    className={styles.sortableHeader}
-                  >
+                  <th onClick={() => requestSort('date')}>
                     Date {sortConfig.key === 'date' && (sortConfig.direction === 'ascending' ? '↑' : '↓')}
                   </th>
-                  <th 
-                    onClick={() => requestSort('itemName')} 
-                    className={styles.sortableHeader}
-                  >
+                  <th onClick={() => requestSort('itemName')}>
                     Item {sortConfig.key === 'itemName' && (sortConfig.direction === 'ascending' ? '↑' : '↓')}
                   </th>
-                  <th 
-                    onClick={() => requestSort('category')} 
-                    className={styles.sortableHeader}
-                  >
+                  <th onClick={() => requestSort('category')}>
                     Category {sortConfig.key === 'category' && (sortConfig.direction === 'ascending' ? '↑' : '↓')}
                   </th>
-                  <th 
-                    onClick={() => requestSort('quantity')} 
-                    className={styles.sortableHeader}
-                  >
+                  <th onClick={() => requestSort('quantity')}>
                     Qty {sortConfig.key === 'quantity' && (sortConfig.direction === 'ascending' ? '↑' : '↓')}
-                  </th>
-                  <th 
-                    onClick={() => requestSort('unitPrice')} 
-                    className={styles.sortableHeader}
-                  >
-                    Unit Price {sortConfig.key === 'unitPrice' && (sortConfig.direction === 'ascending' ? '↑' : '↓')}
-                  </th>
-                  <th 
-                    onClick={() => requestSort('totalCost')} 
-                    className={styles.sortableHeader}
-                  >
-                    Total {sortConfig.key === 'totalCost' && (sortConfig.direction === 'ascending' ? '↑' : '↓')}
                   </th>
                 </tr>
               </thead>
               <tbody>
                 {sortedPurchases.map(purchase => (
-                  <tr key={purchase.id} className={styles.tableRow}>
-                    <td className={styles.dateCell}>{formatDate(purchase.date)}</td>
-                    <td className={styles.itemCell}>{purchase.itemName}</td>
+                  <tr key={purchase.id}>
+                    <td>{formatDate(purchase.date)}</td>
+                    <td>{purchase.itemName || 'N/A'}</td>
                     <td>
-                      <span className={styles.categoryBadge}>{purchase.category}</span>
+                      <span className={styles.categoryBadge}>
+                        {purchase.category || 'Uncategorized'}
+                      </span>
                     </td>
-                    <td className={styles.quantityCell}>{purchase.quantity}</td>
-                    <td className={styles.priceCell}>
-                      {purchase.unitPrice ? `$${parseFloat(purchase.unitPrice).toFixed(2)}` : 'N/A'}
-                    </td>
-                    <td className={styles.priceCell}>
-                      {purchase.totalCost ? `$${parseFloat(purchase.totalCost).toFixed(2)}` : 'N/A'}
-                    </td>
+                    <td>{purchase.quantity || '0'}</td>
                   </tr>
                 ))}
               </tbody>
@@ -140,12 +135,12 @@ export default function PurchaseLog() {
           </>
         ) : (
           <div className={styles.emptyState}>
-            <div className={styles.emptyIllustration}>📦</div>
-            <h3 className={styles.emptyTitle}>
+            <div>📦</div>
+            <h3>
               {searchTerm ? 'No matching purchases found' : 'No purchase records yet'}
             </h3>
-            <p className={styles.emptyText}>
-              {searchTerm ? 'Try a different search term' : 'Add your first purchase using the form above'}
+            <p>
+              {searchTerm ? 'Try a different search term' : 'Add your first purchase above'}
             </p>
           </div>
         )}

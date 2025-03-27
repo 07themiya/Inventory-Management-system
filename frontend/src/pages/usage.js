@@ -4,18 +4,19 @@ import { useSelector } from 'react-redux';
 import styles from './UsageLog.module.css';
 
 export default function UsageLog() {
-  const usage = useSelector(state => state.inventory.usage);
+  const usage = useSelector(state => state.inventory?.usage ?? []); // Ensure usage is always an array
   const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState({
     key: 'date',
     direction: 'descending'
   });
 
-  const filteredUsage = usage.filter(entry => 
+  // Ensure filtering only happens if usage is an array
+  const filteredUsage = Array.isArray(usage) ? usage.filter(entry => 
     entry.itemName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     entry.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
     entry.date.includes(searchTerm)
-  );
+  ) : [];
 
   const sortedUsage = [...filteredUsage].sort((a, b) => {
     if (a[sortConfig.key] < b[sortConfig.key]) {
@@ -90,55 +91,35 @@ export default function UsageLog() {
             <table className={styles.table}>
               <thead>
                 <tr>
-                  <th 
-                    onClick={() => requestSort('date')} 
-                    className={`${styles.sortableHeader} ${sortConfig.key === 'date' ? styles.active : ''}`}
-                  >
+                  <th onClick={() => requestSort('date')} className={`${styles.sortableHeader} ${sortConfig.key === 'date' ? styles.active : ''}`}>
                     <div className={styles.headerContent}>
                       Date
                       <span className={styles.sortArrow}>
-                        {sortConfig.key === 'date' ? (
-                          sortConfig.direction === 'ascending' ? '↑' : '↓'
-                        ) : '↕'}
+                        {sortConfig.key === 'date' ? (sortConfig.direction === 'ascending' ? '↑' : '↓') : '↕'}
                       </span>
                     </div>
                   </th>
-                  <th 
-                    onClick={() => requestSort('itemName')} 
-                    className={`${styles.sortableHeader} ${sortConfig.key === 'itemName' ? styles.active : ''}`}
-                  >
+                  <th onClick={() => requestSort('itemName')} className={`${styles.sortableHeader} ${sortConfig.key === 'itemName' ? styles.active : ''}`}>
                     <div className={styles.headerContent}>
                       Item
                       <span className={styles.sortArrow}>
-                        {sortConfig.key === 'itemName' ? (
-                          sortConfig.direction === 'ascending' ? '↑' : '↓'
-                        ) : '↕'}
+                        {sortConfig.key === 'itemName' ? (sortConfig.direction === 'ascending' ? '↑' : '↓') : '↕'}
                       </span>
                     </div>
                   </th>
-                  <th 
-                    onClick={() => requestSort('category')} 
-                    className={`${styles.sortableHeader} ${sortConfig.key === 'category' ? styles.active : ''}`}
-                  >
+                  <th onClick={() => requestSort('category')} className={`${styles.sortableHeader} ${sortConfig.key === 'category' ? styles.active : ''}`}>
                     <div className={styles.headerContent}>
                       Category
                       <span className={styles.sortArrow}>
-                        {sortConfig.key === 'category' ? (
-                          sortConfig.direction === 'ascending' ? '↑' : '↓'
-                        ) : '↕'}
+                        {sortConfig.key === 'category' ? (sortConfig.direction === 'ascending' ? '↑' : '↓') : '↕'}
                       </span>
                     </div>
                   </th>
-                  <th 
-                    onClick={() => requestSort('quantityUsed')} 
-                    className={`${styles.sortableHeader} ${sortConfig.key === 'quantityUsed' ? styles.active : ''}`}
-                  >
+                  <th onClick={() => requestSort('quantityUsed')} className={`${styles.sortableHeader} ${sortConfig.key === 'quantityUsed' ? styles.active : ''}`}>
                     <div className={styles.headerContent}>
                       Quantity Used
                       <span className={styles.sortArrow}>
-                        {sortConfig.key === 'quantityUsed' ? (
-                          sortConfig.direction === 'ascending' ? '↑' : '↓'
-                        ) : '↕'}
+                        {sortConfig.key === 'quantityUsed' ? (sortConfig.direction === 'ascending' ? '↑' : '↓') : '↕'}
                       </span>
                     </div>
                   </th>

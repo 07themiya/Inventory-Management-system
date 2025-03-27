@@ -70,16 +70,17 @@ export default function UsageForm() {
     }
 
     try {
-      dispatch(
+      // Dispatch the addUsage action
+      await dispatch(
         addUsage({
           ...formData,
-          id: Date.now(),
           quantityUsed: parseInt(formData.quantityUsed),
         })
       );
 
+      // Update inventory if item exists
       if (selectedItem) {
-        dispatch(
+        await dispatch(
           updateItem(selectedItem.id, {
             used: selectedItem.used + parseInt(formData.quantityUsed),
           })
@@ -93,10 +94,13 @@ export default function UsageForm() {
         quantityUsed: "",
       });
       setStockInfo(null);
+    } catch (error) {
+      console.error("Error logging usage:", error);
     } finally {
       setIsSubmitting(false);
     }
   };
+
 
   return (
     <div className={styles.card}>

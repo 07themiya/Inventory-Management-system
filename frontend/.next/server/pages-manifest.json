@@ -2,8 +2,7 @@
   "/_app": "pages/_app.js",
   "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
-  "/inventory": "pages/inventory.js",
+  "/usage": "pages/usage.js",
   "/purchase": "pages/purchase.js",
-  "/": "pages/index.js",
-  "/usage": "pages/usage.js"
+  "/inventory": "pages/inventory.js"
 }
