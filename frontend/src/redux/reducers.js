@@ -1,11 +1,7 @@
 import { ADD_ITEM, UPDATE_ITEM, DELETE_ITEM, ADD_PURCHASE, ADD_USAGE } from './actions';
 
 const initialState = {
-  items: [
-    { id: 1, name: 'Flour', category: 'Baking', initialStock: 100, purchased: 50, used: 30 },
-    { id: 2, name: 'Sugar', category: 'Baking', initialStock: 50, purchased: 20, used: 15 },
-    { id: 3, name: 'Eggs', category: 'Dairy', initialStock: 30, purchased: 60, used: 40 }
-  ],
+  items: [],
   purchases: [],
   usage: []
 };

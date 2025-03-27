@@ -58,7 +58,7 @@ export default function InventoryList() {
             />
           </div>
           <div>
-            <label className="block mb-2">Category</label>
+            <label className="block mb-2">Category</label>ai
             <input
               type="text"
               name="category"
