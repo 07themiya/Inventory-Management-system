@@ -222,17 +222,16 @@ export const addPurchaseLog = (purchaseData) => async (dispatch) => {
 export const fetchUsage = () => {
   return async (dispatch) => {
     try {
-      const response = await fetch('API_URL');
+      const response = await fetch('http://localhost:5000/api/usage');
       const data = await response.json();
       dispatch({
         type: 'FETCH_USAGE_SUCCESS',
         payload: data,
       });
     } catch (error) {
-      dispatch({
-        type: 'FETCH_USAGE_FAILURE',
-        error,
-      });
+      dispatch({ type: 'FETCH_USAGE_FAILURE', error: error.message });
+
     }
   };
 };
+

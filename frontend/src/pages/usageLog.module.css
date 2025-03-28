@@ -1,64 +1,75 @@
-/* Main Container */
+/* UsageLog.module.css */
+
 .container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 24px;
+  padding: 2rem;
+  font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
 }
 
-/* Header Section */
 .header {
-  margin-bottom: 32px;
+  text-align: center;
+  margin-bottom: 2.5rem;
 }
 
 .heading {
-  font-size: 2rem;
-  font-weight: 700;
   color: #2d3748;
-  margin-bottom: 8px;
+  font-size: 2.25rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
 }
 
 .subtitle {
-  font-size: 1rem;
   color: #718096;
-  margin: 0;
+  font-size: 1.125rem;
 }
 
-/* Controls Section */
-.controls {
+/* Card styling */
+.card {
+  background: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  transition: box-shadow 0.2s ease;
+}
+
+.card:hover {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+/* Table header section */
+.tableHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
   flex-wrap: wrap;
-  gap: 16px;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
 }
 
-/* Search Bar */
+.tableTitle {
+  color: #2d3748;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+/* Search bar styling */
 .searchContainer {
   position: relative;
-  width: 100%;
+  flex-grow: 1;
   max-width: 400px;
-  min-width: 250px;
-}
-
-.searchIcon {
-  position: absolute;
-  left: 16px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #718096;
-  font-size: 1rem;
 }
 
 .searchBar {
-  width: 100%;
-  padding: 14px 16px 14px 44px;
+  width: 80%;
+  padding: 0.625rem 1rem 0.625rem 2.5rem;
   border: 1px solid #e2e8f0;
-  border-radius: 8px;
+  border-radius: 0.375rem;
   font-size: 0.875rem;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
   background-color: #f8fafc;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .searchBar:focus {
@@ -68,232 +79,110 @@
   background-color: white;
 }
 
-/* Filter Buttons */
-.filterButtons {
-  display: flex;
-  gap: 12px;
+.searchIcon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #a0aec0;
 }
 
-.filterButton {
-  padding: 10px 16px;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
+/* Filter buttons */
+.filterButtons {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.filterButtons button {
+  background: #edf2f7;
+  border: none;
+  border-radius: 0.375rem;
+  padding: 0.5rem 1rem;
   font-size: 0.875rem;
   font-weight: 500;
   color: #4a5568;
-  background-color: white;
   cursor: pointer;
-  transition: all 0.2s;
-}
-
-.filterButton:hover {
-  background-color: #f7fafc;
-  border-color: #cbd5e0;
-}
-
-.filterButton.active {
-  background-color: #ebf8ff;
-  border-color: #4299e1;
-  color: #3182ce;
-}
-
-/* Card Layout */
-.card {
-  background: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  overflow: hidden;
-  margin-bottom: 24px;
-}
-
-/* Table Header */
-.tableHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 24px 24px 16px;
-  border-bottom: 1px solid #edf2f7;
-}
-
-.tableTitle {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #2d3748;
-  margin: 0;
-}
-
-.summary {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 0.875rem;
-  color: #718096;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
 }
 
-.summaryIcon {
-  font-size: 1rem;
+.filterButtons button:hover {
+  background: #e2e8f0;
 }
 
-/* Table Styles */
+.filterButtons button.active {
+  background: #4299e1;
+  color: white;
+}
+
+/* Table styling */
 .tableContainer {
-  padding: 0 24px 24px;
   overflow-x: auto;
+  border-radius: 0.5rem;
+  border: 1px solid #e2e8f0;
 }
 
 .table {
   width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
+  border-collapse: collapse;
+  min-width: 800px;
 }
 
-.sortableHeader {
-  cursor: pointer;
-  user-select: none;
-  padding: 16px;
+.table th {
+  background-color: #f7fafc;
+  color: #4a5568;
+  font-weight: 600;
   text-align: left;
-  font-weight: 600;
-  color: #4a5568;
-  background-color: white;
-  transition: all 0.2s;
-  border-bottom: 2px solid #e2e8f0;
-}
-
-.sortableHeader:hover {
-  background-color: #f8fafc;
-}
-
-.sortableHeader.active {
-  color: #3182ce;
-  border-bottom-color: #3182ce;
-}
-
-.headerContent {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.sortArrow {
-  font-size: 0.875rem;
-  color: #4299e1;
-}
-
-/* Table Rows & Cells */
-.tableRow {
-  transition: all 0.2s;
-  border-bottom: 1px solid #edf2f7;
-}
-
-.tableRow:hover {
-  background-color: #f8fafc;
-}
-
-.tableRow td {
-  padding: 16px;
-  font-size: 0.875rem;
-}
-
-.dateCell {
-  color: #4a5568;
-  white-space: nowrap;
-}
-
-.dateContent {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-}
-
-.dateDay {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #2d3748;
-}
-
-.dateMonth {
-  font-size: 0.75rem;
-  color: #718096;
+  padding: 1rem;
+  border-bottom: 1px solid #e2e8f0;
   text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
 }
 
-.itemCell {
-  font-weight: 500;
+.table td {
+  padding: 1rem;
+  border-bottom: 1px solid #edf2f7;
   color: #2d3748;
 }
 
-.categoryCell {
-  white-space: nowrap;
+.table tr:last-child td {
+  border-bottom: none;
 }
 
-.categoryBadge {
-  display: inline-block;
-  padding: 6px 12px;
-  background-color: #ebf8ff;
-  color: #3182ce;
-  border-radius: 9999px;
-  font-size: 0.75rem;
+.table tr:hover td {
+  background-color: #f8fafc;
+}
+
+/* Stock level indicators */
+.lowStock {
+  color: #e53e3e;
   font-weight: 600;
 }
 
-.quantityCell {
-  text-align: right;
-  white-space: nowrap;
-}
-
-.quantityContainer {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 8px;
-}
-
-.quantityBadge {
-  display: inline-block;
-  padding: 6px 12px;
-  background-color: #f0fff4;
+.healthyStock {
   color: #38a169;
-  border-radius: 9999px;
-  font-size: 0.75rem;
   font-weight: 600;
 }
 
-.quantityUnit {
-  font-size: 0.75rem;
+/* Loading state */
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
   color: #718096;
 }
 
-/* Empty State */
-.emptyState {
-  padding: 48px 24px;
-  text-align: center;
-}
-
-.emptyIcon {
-  font-size: 3rem;
-  color: #cbd5e0;
-  margin-bottom: 16px;
-}
-
-.emptyTitle {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: #4a5568;
-  margin-bottom: 8px;
-}
-
-.emptyMessage {
-  font-size: 0.875rem;
-  color: #718096;
-  margin: 0;
-}
-
-/* Responsive Design */
+/* Responsive adjustments */
 @media (max-width: 768px) {
   .container {
-    padding: 16px;
+    padding: 1rem;
   }
   
-  .controls {
+  .tableHeader {
     flex-direction: column;
     align-items: stretch;
   }
@@ -304,120 +193,19 @@
   
   .filterButtons {
     justify-content: flex-start;
-  }
-  
-  .tableHeader {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-    padding: 16px;
-  }
-  
-  .tableContainer {
-    padding: 0 16px 16px;
-  }
-  
-  .tableRow td {
-    padding: 12px 8px;
-  }
-  
-  .dateContent {
-    flex-direction: row;
-    gap: 4px;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
   }
 }
 
-@media (max-width: 480px) {
-  .filterButtons {
-    flex-direction: column;
-  }
-  
-  .filterButton {
-    width: 100%;
-    padding: 12px 16px;
-    border: none;
-    border-radius: 8px;
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: #4a5568;
-    background-color: #ffffff;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    text-align: center;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-    position: relative;
-    overflow: hidden;
-    margin-bottom: 8px; /* Space between stacked buttons */
-  }
-  
-  /* Active/Hover States */
-  .filterButton:hover {
-    background-color: #f7fafc;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
-  
-  .filterButton.active {
-    background-color: #ebf8ff;
-    color: #3182ce;
-    font-weight: 600;
-    box-shadow: 0 0 0 1px #4299e1;
-  }
-  
-  /* Ripple Effect */
-  .filterButton::after {
-    content: "";
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 5px;
-    height: 5px;
-    background: rgba(66, 153, 225, 0.5);
-    opacity: 0;
-    border-radius: 100%;
-    transform: scale(1, 1) translate(-50%);
-    transform-origin: 50% 50%;
-  }
-  
-  .filterButton:focus:not(:active)::after {
-    animation: ripple 0.6s ease-out;
-  }
-  
-  @keyframes ripple {
-    0% {
-      transform: scale(0, 0);
-      opacity: 0.5;
-    }
-    100% {
-      transform: scale(20, 20);
-      opacity: 0;
-    }
-  }
-  
-  /* Icon Support */
-  .filterButton.withIcon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-  }
-  
-  .filterButton .icon {
-    font-size: 1rem;
-  }
-  
-  /* Responsive Considerations */
-  @media (min-width: 640px) {
-    .filterButton {
-      width: auto;
-      min-width: 120px;
-      margin-bottom: 0;
-      margin-right: 8px;
-    }
-    
-    .filterButtons {
-      display: flex;
-      flex-wrap: wrap;
-    }
-  }
+/* Animation for sorting arrows */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-3px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.sortArrow {
+  display: inline-block;
+  margin-left: 0.25rem;
+  animation: fadeIn 0.2s ease-out;
 }

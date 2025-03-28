@@ -1,51 +1,96 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import UsageForm from '../components/UsageForm';
-import { fetchUsage } from '../redux/actions';
-import styles from './UsageLog.module.css';
+import { fetchUsage, fetchItems } from '../redux/actions';
+import styles from './usageLog.module.css';
 
 export default function UsageLog() {
   const dispatch = useDispatch();
-  const usage = useSelector(state => state.inventory?.usage ?? []); 
-  const [searchTerm, setSearchTerm] = useState('');
-  const [sortConfig, setSortConfig] = useState({
-    key: 'date',
-    direction: 'descending'
-  });
-
-  // Fetch usage data from Redux store
-  const { records = [], loading = false, error = null } = useSelector(state => state.usage || {});
-
+  
+  // Fetch both usage and inventory data
   useEffect(() => {
     dispatch(fetchUsage());
+    dispatch(fetchItems());
   }, [dispatch]);
 
-  // Filter usage records based on search term
-  const filteredUsage = Array.isArray(records) ? records.filter(entry => 
-    entry.itemName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    entry.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    entry.date.includes(searchTerm)
-  ) : [];
+  // Get data from Redux store
+  const { records = [], loading: usageLoading, error: usageError } = useSelector(state => state.usage || {});
+  const { items = [], loading: inventoryLoading, error: inventoryError } = useSelector(state => state.inventory || {});
 
-  // Sorting function for usage records
-  const sortedUsage = [...filteredUsage].sort((a, b) => {
-    if (a[sortConfig.key] < b[sortConfig.key]) {
-      return sortConfig.direction === 'ascending' ? -1 : 1;
+  // State for search and sorting
+  const [inventorySearch, setInventorySearch] = useState('');
+  const [usageSearch, setUsageSearch] = useState('');
+  const [inventorySortConfig, setInventorySortConfig] = useState({ key: 'name', direction: 'ascending' });
+  const [usageSortConfig, setUsageSortConfig] = useState({ key: 'date', direction: 'descending' });
+
+  // Calculate current stock for inventory items
+  const calculateCurrentStock = (item) => {
+    return (Number(item.initialStock) || 0) + (Number(item.purchased) || 0) - (Number(item.used) || 0);
+  };
+
+  // Filter and sort inventory items
+  const filteredInventory = items.filter(item => 
+    item.name.toLowerCase().includes(inventorySearch.toLowerCase()) ||
+    (item.category && item.category.toLowerCase().includes(inventorySearch.toLowerCase()))
+  );
+
+  const sortedInventory = [...filteredInventory].sort((a, b) => {
+    let valueA, valueB;
+    
+    if (inventorySortConfig.key === 'currentStock') {
+      valueA = calculateCurrentStock(a);
+      valueB = calculateCurrentStock(b);
+    } else {
+      valueA = a[inventorySortConfig.key];
+      valueB = b[inventorySortConfig.key];
     }
-    if (a[sortConfig.key] > b[sortConfig.key]) {
-      return sortConfig.direction === 'ascending' ? 1 : -1;
+
+    if (valueA < valueB) {
+      return inventorySortConfig.direction === 'ascending' ? -1 : 1;
+    }
+    if (valueA > valueB) {
+      return inventorySortConfig.direction === 'ascending' ? 1 : -1;
     }
     return 0;
   });
 
-  // Request sorting by different keys
-  const requestSort = (key) => {
+  // Filter and sort usage records
+  const filteredUsage = records.filter(entry => 
+    entry.itemName.toLowerCase().includes(usageSearch.toLowerCase()) ||
+    (entry.category && entry.category.toLowerCase().includes(usageSearch.toLowerCase())) ||
+    entry.date.includes(usageSearch)
+  );
+
+  const sortedUsage = [...filteredUsage].sort((a, b) => {
+    if (a[usageSortConfig.key] < b[usageSortConfig.key]) {
+      return usageSortConfig.direction === 'ascending' ? -1 : 1;
+    }
+    if (a[usageSortConfig.key] > b[usageSortConfig.key]) {
+      return usageSortConfig.direction === 'ascending' ? 1 : -1;
+    }
+    return 0;
+  });
+
+  // Sort request handlers
+  const requestInventorySort = (key) => {
     let direction = 'ascending';
-    if (sortConfig.key === key && sortConfig.direction === 'ascending') {
+    if (inventorySortConfig.key === key && inventorySortConfig.direction === 'ascending') {
       direction = 'descending';
     }
-    setSortConfig({ key, direction });
+    setInventorySortConfig({ key, direction });
   };
+
+  const requestUsageSort = (key) => {
+    let direction = 'ascending';
+    if (usageSortConfig.key === key && usageSortConfig.direction === 'ascending') {
+      direction = 'descending';
+    }
+    setUsageSortConfig({ key, direction });
+  };
+
+  if (usageLoading || inventoryLoading) {
+    return <div className={styles.loading}>Loading...</div>;
+  }
 
   return (
     <div className={styles.container}>
@@ -58,123 +103,62 @@ export default function UsageLog() {
         <UsageForm />
       </div>
 
-      <div className={styles.controls}>
-        <div className={styles.searchContainer}>
-          <span className={styles.searchIcon}>🔍</span>
-          <input
-            type="text"
-            placeholder="Search by item, category, or date..."
-            className={styles.searchBar}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div><br />
-        <div className={styles.filterButtons}>
-          <button 
-            className={`${styles.filterButton} ${sortConfig.key === 'date' ? styles.active : ''}`}
-            onClick={() => requestSort('date')}
-          >
-            <span className={styles.icon}>📅</span>
-            Recent
-          </button>
-          
-          <button 
-            className={`${styles.filterButton} ${sortConfig.key === 'quantityUsed' ? styles.active : ''}`}
-            onClick={() => requestSort('quantityUsed')}
-          >
-            <span className={styles.icon}>📊</span>
-            Largest Usage
-          </button>
-        </div>
-      </div>
-
+      {/* Inventory Table */}
       <div className={styles.card}>
         <div className={styles.tableHeader}>
-          <h2 className={styles.tableTitle}>Usage History</h2>
-          <div className={styles.summary}>
-            <span className={styles.summaryIcon}>📊</span>
-            Showing {sortedUsage.length} of {records.length} records
+          <h2 className={styles.tableTitle}>Inventory Overview</h2>
+          <div className={styles.controls}>
+            <div className={styles.searchContainer}>
+              <span className={styles.searchIcon}>🔍</span>
+              <input
+                type="text"
+                placeholder="Search inventory..."
+                className={styles.searchBar}
+                value={inventorySearch}
+                onChange={(e) => setInventorySearch(e.target.value)}
+              />
+            </div><br />
+            <div className={styles.filterButtons}>
+              <button onClick={() => requestInventorySort('name')}>
+                Sort by Name {inventorySortConfig.key === 'name' && (
+                  inventorySortConfig.direction === 'ascending' ? '↑' : '↓'
+                )}
+              </button>
+              <button onClick={() => requestInventorySort('currentStock')}>
+                Sort by Stock {inventorySortConfig.key === 'currentStock' && (
+                  inventorySortConfig.direction === 'ascending' ? '↑' : '↓'
+                )}
+              </button>
+            </div>
           </div>
         </div>
 
-        {sortedUsage.length > 0 ? (
-          <div className={styles.tableContainer}>
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  <th onClick={() => requestSort('date')} className={`${styles.sortableHeader} ${sortConfig.key === 'date' ? styles.active : ''}`}>
-                    <div className={styles.headerContent}>
-                      Date
-                      <span className={styles.sortArrow}>
-                        {sortConfig.key === 'date' ? (sortConfig.direction === 'ascending' ? '↑' : '↓') : '↕'}
-                      </span>
-                    </div>
-                  </th>
-                  <th onClick={() => requestSort('itemName')} className={`${styles.sortableHeader} ${sortConfig.key === 'itemName' ? styles.active : ''}`}>
-                    <div className={styles.headerContent}>
-                      Item
-                      <span className={styles.sortArrow}>
-                        {sortConfig.key === 'itemName' ? (sortConfig.direction === 'ascending' ? '↑' : '↓') : '↕'}
-                      </span>
-                    </div>
-                  </th>
-                  <th onClick={() => requestSort('category')} className={`${styles.sortableHeader} ${sortConfig.key === 'category' ? styles.active : ''}`}>
-                    <div className={styles.headerContent}>
-                      Category
-                      <span className={styles.sortArrow}>
-                        {sortConfig.key === 'category' ? (sortConfig.direction === 'ascending' ? '↑' : '↓') : '↕'}
-                      </span>
-                    </div>
-                  </th>
-                  <th onClick={() => requestSort('quantityUsed')} className={`${styles.sortableHeader} ${sortConfig.key === 'quantityUsed' ? styles.active : ''}`}>
-                    <div className={styles.headerContent}>
-                      Quantity Used
-                      <span className={styles.sortArrow}>
-                        {sortConfig.key === 'quantityUsed' ? (sortConfig.direction === 'ascending' ? '↑' : '↓') : '↕'}
-                      </span>
-                    </div>
-                  </th>
+        <div className={styles.tableContainer}>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th>Item Name</th>
+                <th>Initial Stock</th>
+                <th>Purchased</th>
+                <th>Used</th>
+                <th>Current Stock</th>
+              </tr>
+            </thead>
+            <tbody>
+              {sortedInventory.map(item => (
+                <tr key={item.id}>
+                  <td>{item.name}</td>
+                  <td>{item.initialStock}</td>
+                  <td>{item.purchased}</td>
+                  <td>{item.used}</td>
+                  <td className={calculateCurrentStock(item) <= 0 ? styles.lowStock : ''}>
+                    {calculateCurrentStock(item)}
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {sortedUsage.map(entry => (
-                  <tr key={entry._id} className={styles.tableRow}>
-                    <td className={styles.dateCell}>
-                      <div className={styles.dateContent}>
-                        <span className={styles.dateDay}>
-                          {new Date(entry.date).getDate()}
-                        </span>
-                        <span className={styles.dateMonth}>
-                          {new Date(entry.date).toLocaleString('default', { month: 'short' })}
-                        </span>
-                      </div>
-                    </td>
-                    <td className={styles.itemCell}>{entry.itemName}</td>
-                    <td className={styles.categoryCell}>
-                      <span className={styles.categoryBadge}>{entry.category}</span>
-                    </td>
-                    <td className={styles.quantityCell}>
-                      <div className={styles.quantityContainer}>
-                        <span className={styles.quantityBadge}>{entry.quantityUsed}</span>
-                        <span className={styles.quantityUnit}>units</span>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <div className={styles.emptyState}>
-            <div className={styles.emptyIcon}>📊</div>
-            <h3 className={styles.emptyTitle}>
-              {searchTerm ? 'No matching records found' : 'No usage records yet'}
-            </h3>
-            <p className={styles.emptyMessage}>
-              {searchTerm ? 'Try a different search term' : 'Start by logging your first usage'}
-            </p>
-          </div>
-        )}
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
