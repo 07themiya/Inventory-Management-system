@@ -30,6 +30,7 @@ router.post("/", async (req, res) => {
     }
 
     const savedUsageLog = await newUsageLog.save();
+    console.log("Saved Usage Log:", savedUsageLog); 
     res.status(201).json(savedUsageLog);
   } catch (error) {
     res.status(400).json({ message: error.message });

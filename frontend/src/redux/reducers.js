@@ -17,12 +17,42 @@ const initialInventoryState = {
 };
 
 const initialState = {
-  purchaseLogs: [],
-  error: null,
+
+  inventory: {
+    items: [],
+    loading: false,
+    error: null,
+    purchaseLogs: [],
+  },
+  usage: {
+    usageData: [],
+    records: [], 
+    loading: false,
+    error: null
+  }
 };
 
 const initialPurchaseState = {
   purchaseLogs: []  // Keep the key consistent
+};
+
+const usageReducer = (state = initialState, action) => {
+  switch (action.type) {
+    case 'FETCH_USAGE_SUCCESS':
+      return {
+        ...state,
+        usageData: action.payload,
+        loading: false,
+      };
+    case 'FETCH_USAGE_FAILURE':
+      return {
+        ...state,
+        error: action.error,
+        loading: false,
+      };
+    default:
+      return state;
+  }
 };
 
 // Inventory reducer
@@ -99,3 +129,39 @@ export function purchaseLogReducer(state = initialPurchaseState, action) {
   }
 }
 
+function rootReducer(state = initialState, action) {
+  switch (action.type) {
+    // ... your existing cases
+    
+    // Add these new cases for usage
+    case 'FETCH_USAGE_REQUEST':
+      return {
+        ...state,
+        usage: {
+          ...state.usage,
+          loading: true,
+          error: null
+        }
+      };
+    case 'FETCH_USAGE_SUCCESS':
+      return {
+        ...state,
+        usage: {
+          ...state.usage,
+          loading: false,
+          records: action.payload
+        }
+      };
+    case 'FETCH_USAGE_FAILURE':
+      return {
+        ...state,
+        usage: {
+          ...state.usage,
+          loading: false,
+          error: action.error
+        }
+      };
+    default:
+      return state;
+  }
+}

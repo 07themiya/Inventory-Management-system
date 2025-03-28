@@ -7,7 +7,7 @@ import styles from './purchase.module.css';
 
 export default function PurchaseLog() {
   const dispatch = useDispatch();
-  const purchases = useSelector(state => state.inventory?.purchases || []);
+  const purchases = useSelector(state => state.purchaseLogs?.purchaseLogs || []);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'descending' });
 

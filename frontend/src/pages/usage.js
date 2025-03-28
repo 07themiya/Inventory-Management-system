@@ -1,23 +1,33 @@
-import { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import UsageForm from '../components/UsageForm';
-import { useSelector } from 'react-redux';
+import { fetchUsage } from '../redux/actions';
 import styles from './UsageLog.module.css';
 
 export default function UsageLog() {
-  const usage = useSelector(state => state.inventory?.usage ?? []); // Ensure usage is always an array
+  const dispatch = useDispatch();
+  const usage = useSelector(state => state.inventory?.usage ?? []); 
   const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState({
     key: 'date',
     direction: 'descending'
   });
 
-  // Ensure filtering only happens if usage is an array
-  const filteredUsage = Array.isArray(usage) ? usage.filter(entry => 
+  // Fetch usage data from Redux store
+  const { records = [], loading = false, error = null } = useSelector(state => state.usage || {});
+
+  useEffect(() => {
+    dispatch(fetchUsage());
+  }, [dispatch]);
+
+  // Filter usage records based on search term
+  const filteredUsage = Array.isArray(records) ? records.filter(entry => 
     entry.itemName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     entry.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
     entry.date.includes(searchTerm)
   ) : [];
 
+  // Sorting function for usage records
   const sortedUsage = [...filteredUsage].sort((a, b) => {
     if (a[sortConfig.key] < b[sortConfig.key]) {
       return sortConfig.direction === 'ascending' ? -1 : 1;
@@ -28,6 +38,7 @@ export default function UsageLog() {
     return 0;
   });
 
+  // Request sorting by different keys
   const requestSort = (key) => {
     let direction = 'ascending';
     if (sortConfig.key === key && sortConfig.direction === 'ascending') {
@@ -82,7 +93,7 @@ export default function UsageLog() {
           <h2 className={styles.tableTitle}>Usage History</h2>
           <div className={styles.summary}>
             <span className={styles.summaryIcon}>📊</span>
-            Showing {sortedUsage.length} of {usage.length} records
+            Showing {sortedUsage.length} of {records.length} records
           </div>
         </div>
 
@@ -127,7 +138,7 @@ export default function UsageLog() {
               </thead>
               <tbody>
                 {sortedUsage.map(entry => (
-                  <tr key={entry.id} className={styles.tableRow}>
+                  <tr key={entry._id} className={styles.tableRow}>
                     <td className={styles.dateCell}>
                       <div className={styles.dateContent}>
                         <span className={styles.dateDay}>
